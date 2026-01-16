@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import { ClaudeMessage, getTodayMessages } from "./claude-parser";
 
 export interface SyncResult {
@@ -130,10 +130,9 @@ export function syncToOutput(
     // Git commit if enabled
     if (autoGitCommit) {
       try {
-        execSync(`cd "${outputDir}" && git add "${outputFile}" && git commit -m "Claude: ${today} (auto)" 2>/dev/null`, {
-          encoding: "utf-8",
-          stdio: "pipe",
-        });
+        const gitOptions = { cwd: outputDir, stdio: "pipe" as const };
+        spawnSync("git", ["add", outputFile], gitOptions);
+        spawnSync("git", ["commit", "-m", `Claude: ${today} (auto)`], gitOptions);
       } catch {
         // Git commit might fail if no changes or not a git repo - that's OK
       }
